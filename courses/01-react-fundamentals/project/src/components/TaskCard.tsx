@@ -16,7 +16,7 @@ export default function TaskCard({
     <article id="task-card">
       <h2>{title}</h2>
       <p>{description}</p>
-      <p>{priority}</p>
+      <p>Priority: {priority}</p>
     </article>
   )
 }
