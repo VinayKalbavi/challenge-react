@@ -1,63 +1,398 @@
 import './App.css'
-import { useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+} from 'react'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from 'react-router-dom'
+
 import ChallengeList from './components/ChallengeList'
 import TaskList from './components/TaskList'
 import TaskApp from './components/TaskApp'
 import TaskDetailPage from './components/TaskDetailPage'
 import FetchDemoView from './components/FetchDemoView'
+
 import { ThemeProvider } from './contexts/ThemeContext'
+import useLocalStorage from './hooks/useLocalStorage'
+
 import type { Task } from './components/TaskList'
 
+import {
+  taskReducer,
+  setTasks,
+  deleteTask,
+} from './reducers/taskReducer'
+
 const INITIAL_TASKS: Task[] = [
-  { id: 1, title: 'First Task', description: 'Description one', priority: 'High', completed: false },
-  { id: 2, title: 'Second Task', description: 'Description two', priority: 'Medium', completed: false },
-  { id: 3, title: 'Third Task', description: 'Description three', priority: 'Low', completed: false },
-  { id: 4, title: 'Fourth Task', description: 'Description four', priority: 'Medium', completed: false },
-  { id: 5, title: 'Fifth Task', description: 'Description five', priority: 'High', completed: false },
+  {
+    id: 1,
+    title: 'First Task',
+    description: 'Description one',
+    priority: 'High',
+    completed: false,
+    category: 'Work',
+    tags: ['important', 'first'],
+  },
+  {
+    id: 2,
+    title: 'Second Task',
+    description: 'Description two',
+    priority: 'Medium',
+    completed: false,
+    category: 'Personal',
+    tags: ['personal'],
+  },
+  {
+    id: 3,
+    title: 'Third Task',
+    description: 'Description three',
+    priority: 'Low',
+    completed: false,
+    category: 'General',
+    tags: [],
+  },
+  {
+    id: 4,
+    title: 'Fourth Task',
+    description: 'Description four',
+    priority: 'Medium',
+    completed: false,
+    category: 'Work',
+    tags: ['work'],
+  },
+  {
+    id: 5,
+    title: 'Fifth Task',
+    description: 'Description five',
+    priority: 'High',
+    completed: false,
+    category: 'Personal',
+    tags: ['important'],
+  },
 ]
 
-function AppContent() {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS)
+const STORAGE_KEY = 'task-app-tasks'
 
-  const handleDelete = (id: string | number) => {
-    if (window.confirm('Are you sure?')) {
-      setTasks((prev) => prev.filter((t) => t.id !== id))
-    }
-  }
+function AppContent() {
+  const [storedTasks, setStoredTasks] =
+    useLocalStorage<Task[]>(
+      STORAGE_KEY,
+      INITIAL_TASKS,
+    )
+
+  const [tasks, dispatch] = useReducer(
+    taskReducer,
+    storedTasks,
+    (initialTasks) =>
+      taskReducer(
+        [],
+        setTasks(initialTasks),
+      ),
+  )
+
+  useEffect(() => {
+    setStoredTasks(tasks)
+  }, [tasks, setStoredTasks])
+
+  const handleDelete = useCallback(
+    (id: string | number) => {
+      if (window.confirm('Are you sure?')) {
+        dispatch(deleteTask(id))
+      }
+    },
+    [],
+  )
 
   return (
     <BrowserRouter>
       <div className="App">
-        <main>
-          <Routes>
-            <Route path="/" element={<ChallengeList />} />
-            <Route path="/challenge/01-static-task-display" element={<TaskList />} />
-            <Route path="/challenge/02-dynamic-task-rendering" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm={false} countFormat="tasks" />} />
-            <Route path="/challenge/03-adding-new-tasks" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/04-task-completion-toggle" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="completed" />} />
-            <Route path="/challenge/05-task-deletion" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" onDelete={handleDelete} />} />
-            <Route path="/challenge/06-task-filtering" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showFilterBar />} />
-            <Route path="/challenge/07-priority-based-sorting" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showFilterBar />} />
-            <Route path="/challenge/08-task-editing" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/09-search-functionality" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showFilterBar />} />
-            <Route path="/challenge/10-useeffect-local-storage" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/11-useeffect-debounced-search" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showFilterBar />} />
-            <Route path="/challenge/12-categories-and-tags" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showFilterBar />} />
-            <Route path="/challenge/13-due-dates-and-sorting" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showFilterBar />} />
-            <Route path="/challenge/14-task-statistics-dashboard" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showStatsPanel />} />
-            <Route path="/challenge/15-component-organization" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/16-context-api-theme" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/17-custom-hook-uselocalstorage" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/18-usereducer-complex-state" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/19-performance-optimization" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/20-error-boundaries" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" />} />
-            <Route path="/challenge/21-react-router" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" linkToTaskDetail />} />
-            <Route path="/challenge/21-react-router/task/:id" element={<TaskDetailPage />} />
-            <Route path="/challenge/22-data-fetching" element={<FetchDemoView />} />
-            <Route path="/challenge/23-useref-focus-management" element={<TaskApp tasks={tasks} setTasks={setTasks} showForm countFormat="tasks" showFilterBar />} />
-          </Routes>
-        </main>
+        <Routes>
+          <Route
+            path="/"
+            element={<ChallengeList />}
+          />
+
+          <Route
+            path="/challenge/01-static-task-display"
+            element={<TaskList />}
+          />
+
+          <Route
+            path="/challenge/02-dynamic-task-rendering"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm={false}
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/03-adding-new-tasks"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/04-task-completion-toggle"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="completed"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/05-task-deletion"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                onDelete={handleDelete}
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/06-task-filtering"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showFilterBar
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/07-priority-based-sorting"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showFilterBar
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/08-task-editing"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/09-search-functionality"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showFilterBar
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/10-useeffect-local-storage"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/11-useeffect-debounced-search"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showFilterBar
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/12-categories-and-tags"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showFilterBar
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/13-due-dates-and-sorting"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showFilterBar
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/14-task-statistics-dashboard"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showStatsPanel
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/15-component-organization"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/16-context-api-theme"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/17-custom-hook-uselocalstorage"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/18-usereducer-complex-state"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/19-performance-optimization"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/20-error-boundaries"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/21-react-router"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                linkToTaskDetail
+              />
+            }
+          />
+
+          <Route
+            path="/challenge/21-react-router/task/:id"
+            element={<TaskDetailPage />}
+          />
+
+          <Route
+            path="/challenge/22-data-fetching"
+            element={<FetchDemoView />}
+          />
+
+          <Route
+            path="/challenge/23-useref-focus-management"
+            element={
+              <TaskApp
+                tasks={tasks}
+                dispatch={dispatch}
+                showForm
+                countFormat="tasks"
+                showFilterBar
+              />
+            }
+          />
+        </Routes>
       </div>
     </BrowserRouter>
   )

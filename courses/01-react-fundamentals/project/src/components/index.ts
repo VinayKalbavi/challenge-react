@@ -6,9 +6,28 @@ export { default as TaskApp } from './TaskApp'
 export { default as FilterBar } from './FilterBar'
 export { default as StatsPanel } from './StatsPanel'
 export { default as ErrorBoundary } from './ErrorBoundary'
+
 export { default as Button } from './Button'
+export type { ButtonProps } from './Button'
+
 export { default as Badge } from './Badge'
+export type { BadgeProps } from './Badge'
+
 export { default as StatusIndicator } from './StatusIndicator'
+export type {
+  StatusIndicatorProps,
+  StatusType,
+} from './StatusIndicator'
+
 export { default as FormInput } from './FormInput'
+export type { FormInputProps } from './FormInput'
+
 export { default as TaskDetailPage } from './TaskDetailPage'
 export { default as FetchDemoView } from './FetchDemoView'
+
+export type {
+  Priority,
+  Task,
+} from './TaskList'
+
+export type { TaskStats } from './StatsPanel'

@@ -1,53 +1,72 @@
 import TaskCard from './TaskCard'
+import TaskForm from './TaskForm'
 
-export interface Task {
+export type Priority = 'Low' | 'Medium' | 'High'
+
+export type Task = {
   id: string | number
   title: string
   description: string
-  priority: string
+  priority: Priority
   completed: boolean
   category?: string
   tags?: string[]
-  dueDate?: string | number
+  dueDate?: string
 }
 
 interface TaskListProps {
   tasks?: Task[]
   countText?: string
-  onToggle?: (id: string | number) => void
-  onDelete?: (id: string | number) => void
+  showForm?: boolean
+  setTasks?: React.Dispatch<
+    React.SetStateAction<Task[]>
+  >
+  categories?: string[]
+  onDelete?: (
+    id: string | number,
+  ) => void
   linkToTaskDetail?: boolean
+  onToggle?: (
+    id: string | number,
+  ) => void
 }
 
-const HARDCODED_TASKS: Task[] = [
-  {
-    id: 1,
-    title: 'Task One',
-    description: 'First hardcoded task',
-    priority: 'High',
-    completed: false,
-  },
-  {
-    id: 2,
-    title: 'Task Two',
-    description: 'Second hardcoded task',
-    priority: 'Medium',
-    completed: false,
-  },
-  {
-    id: 3,
-    title: 'Task Three',
-    description: 'Third hardcoded task',
-    priority: 'Low',
-    completed: false,
-  },
-]
-
 export default function TaskList({
-  tasks,
+  tasks = [],
   countText,
+  showForm = true,
+  setTasks,
+  categories = [],
+  onDelete,
+  linkToTaskDetail = false,
+  onToggle,
 }: TaskListProps) {
-  const list = tasks ?? HARDCODED_TASKS
+  const handleAddTask = (newTask: Task) => {
+    setTasks?.((previousTasks) => [
+      ...previousTasks,
+      newTask,
+    ])
+  }
+
+  const handleToggle = (
+    id: string | number,
+  ) => {
+    if (onToggle) {
+      onToggle(id)
+      return
+    }
+
+    setTasks?.((previousTasks) =>
+      previousTasks.map((task) =>
+        task.id === id
+          ? {
+              ...task,
+              completed: !task.completed,
+            }
+          : task,
+      ),
+    )
+  }
 
   return (
     <section id="task-list">
@@ -57,14 +76,39 @@ export default function TaskList({
         </div>
       )}
 
-      {list.map((task) => (
-        <TaskCard
-          key={task.id}
-          title={task.title}
-          description={task.description}
-          priority={task.priority}
+      {showForm && setTasks && (
+        <TaskForm
+          onAddTask={handleAddTask}
+          categories={categories}
         />
-      ))}
+      )}
+
+      <div>
+        {tasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            id={task.id}
+            title={task.title}
+            description={task.description}
+            priority={task.priority}
+            completed={task.completed}
+            category={
+              task.category ?? 'General'
+            }
+            tags={task.tags ?? []}
+            dueDate={task.dueDate}
+            onToggle={handleToggle}
+            onDelete={
+              onDelete
+                ? (id) => onDelete(id)
+                : undefined
+            }
+            linkToTaskDetail={
+              linkToTaskDetail
+            }
+          />
+        ))}
+      </div>
     </section>
   )
 }
